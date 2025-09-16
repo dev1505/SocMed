@@ -2,7 +2,6 @@ from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from .authentication import get_tokens_for_user
-
 from .hash import check_hashed_password, hash_password
 from .models import Credentials, User
 
@@ -47,22 +46,9 @@ class SignupSerializer(serializers.Serializer):
 
 
 class LoginSerializer(TokenObtainPairSerializer):
-    # email = serializers.EmailField(required=False)
-    # auth_id = serializers.CharField(required=False, allow_blank=True)
-
     def validate(self, attrs):
-        # auth_id = self.initial_data.get("auth_id", None)
         email = attrs.get("email", None)
         password = attrs.get("password", None)
-        # if auth_id:
-        #     try:
-        #         creds = Credentials.objects.get(auth_id=auth_id)
-        #         user = creds.user
-        #         if not user.is_active or user.is_deleted:
-        #             raise serializers.ValidationError("User is inactive or deleted.")
-        #     except Credentials.DoesNotExist:
-        #         raise serializers.ValidationError("Invalid auth_id.")
-        # else:
         if not email or not password:
             raise serializers.ValidationError(
                 "Email and password required if auth_id not provided."
@@ -84,6 +70,46 @@ class LoginSerializer(TokenObtainPairSerializer):
         data = get_tokens_for_user(user=user)
         data["user"] = {  # type: ignore
             "id": user.id,  # type: ignore
+            "username": user.username,
+            "email": user.email,
+        }
+        return data
+
+
+class SocialLoginSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    username = serializers.CharField(required=False, allow_blank=True)
+    auth_id = serializers.CharField()
+    auth_id_by = serializers.CharField()
+
+    def validate(self, attrs):
+        email = attrs.get("email")
+        username = attrs.get("username") or email.split("@")[0]
+        auth_id = attrs.get("auth_id")
+        auth_id_by = attrs.get("auth_id_by")
+
+        user, created = User.objects.get_or_create(
+            email=email,
+            defaults={
+                "username": username,
+                "is_active": True,
+                "is_deleted": False,
+            },
+        )
+
+        Credentials.objects.get_or_create(
+            user=user,
+            auth_id=auth_id,
+            auth_id_by=auth_id_by,
+            defaults={"password": None},
+        )
+
+        if not user.is_active or user.is_deleted:
+            raise serializers.ValidationError("User is inactive or deleted.")
+
+        data = get_tokens_for_user(user)
+        data["user"] = {  # type:ignore
+            "id": user.id,  # type:ignore
             "username": user.username,
             "email": user.email,
         }

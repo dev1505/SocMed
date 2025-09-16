@@ -37,7 +37,7 @@ class User(SoftDeleteModel):
 
     @property
     def is_anonymous(self):
-        return True
+        return False
 
 
 class Credentials(models.Model):
