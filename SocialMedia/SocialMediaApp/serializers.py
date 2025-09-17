@@ -113,4 +113,5 @@ class SocialLoginSerializer(serializers.Serializer):
             "username": user.username,
             "email": user.email,
         }
+
         return data

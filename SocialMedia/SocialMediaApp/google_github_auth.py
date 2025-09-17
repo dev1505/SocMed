@@ -1,3 +1,4 @@
+import re
 from urllib.parse import urlencode
 
 import requests
@@ -8,6 +9,8 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from .authentication import create_cookie
+
 from .serializers import SocialLoginSerializer
 
 
@@ -16,8 +19,6 @@ class GoogleLogin(SocialLoginView):
 
 
 class GoogleLoginURL(APIView):
-    permission_classes = [AllowAny]
-
     def get(self, request):
         client_id = (
             settings.SOCIALACCOUNT_PROVIDERS.get("google", {})
@@ -43,8 +44,6 @@ class GoogleLoginURL(APIView):
 
 
 class GoogleCallback(APIView):
-    permission_classes = [AllowAny]
-
     def get(self, request):
         code = request.GET.get("code")
         if not code:
@@ -90,11 +89,106 @@ class GoogleCallback(APIView):
                 "auth_id_by": "google",
             }
         )
+
         serializer.is_valid(raise_exception=True)
 
+        response = create_cookie(serializer=serializer)
+
+        return response
+
+
+class GithubLoginURL(APIView):
+    def get(self, request):
+        client_id = (
+            settings.SOCIALACCOUNT_PROVIDERS.get("github", {})
+            .get("APP", {})
+            .get("client_id", None)
+        )
+        base_url = "https://github.com/login/oauth/authorize"
+        params = {
+            "client_id": client_id,
+            "redirect_uri": "http://127.0.0.1:8000/auth/github/callback/",
+            "scope": "read:user user:email",
+            "allow_signup": "true",
+        }
+        url = f"{base_url}?{urlencode(params)}"
         return Response(
             {
-                "data": serializer.validated_data,
+                "data": url,
                 "success": True,
             }
         )
+
+
+class GithubCallback(APIView):
+    def get(self, request):
+        code = request.query_params.get("code")
+        if not code:
+            return Response(
+                {
+                    "message": "No code provided",
+                    "success": False,
+                }
+            )
+
+        token_url = "https://github.com/login/oauth/access_token"
+        data = {
+            "client_id": settings.SOCIALACCOUNT_PROVIDERS["github"]["APP"]["client_id"],
+            "client_secret": settings.SOCIALACCOUNT_PROVIDERS["github"]["APP"][
+                "secret"
+            ],
+            "code": code,
+        }
+
+        headers = {"Accept": "application/json"}
+        req = requests.post(token_url, data=data, headers=headers)
+
+        tokens = req.json()
+        access_token = tokens.get("access_token")
+
+        if not access_token:
+            return Response(
+                {
+                    "message": "Failed to retrieve access token",
+                    "details": tokens,
+                    "success": False,
+                }
+            )
+
+        userinfo_url = "https://api.github.com/user"
+        userinfo_response = requests.get(
+            userinfo_url, headers={"Authorization": f"token {access_token}"}
+        )
+        user_info = userinfo_response.json()
+
+        email = user_info.get("email")
+        if not email:
+            emails_res = requests.get(
+                "https://api.github.com/user/emails",
+                headers={"Authorization": f"token {access_token}"},
+            )
+            emails = emails_res.json()
+            email = next((e["email"] for e in emails if e.get("primary")), None)
+
+        if not email:
+            return Response(
+                {
+                    "message": "Email not available",
+                    "success": False,
+                }
+            )
+
+        serializer = SocialLoginSerializer(
+            data={
+                "email": email,
+                "username": user_info.get("login"),
+                "auth_id": str(user_info.get("id")),
+                "auth_id_by": "github",
+            }
+        )
+
+        serializer.is_valid(raise_exception=True)
+
+        response = create_cookie(serializer=serializer)
+
+        return response

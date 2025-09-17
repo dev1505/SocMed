@@ -43,6 +43,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "allauth.account.middleware.AccountMiddleware",
+    "SocialMediaApp.middleware.CookieToHeaderMiddleware",
 ]
 
 ROOT_URLCONF = "SocialMedia.urls"
@@ -104,11 +105,12 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
-    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
+    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.AllowAny",),
 }
 
+
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
@@ -124,7 +126,27 @@ SOCIALACCOUNT_PROVIDERS = {
             "secret": os.environ.get("GOOGLE_CLIENT_SECRET", ""),
             "key": "",
         }
-    }
+    },
+    "github": {
+        "APP": {
+            "client_id": os.environ.get("GITHUB_CLIENT_ID", ""),
+            "secret": os.environ.get("GITHUB_CLIENT_SECRET", ""),
+        }
+    },
 }
 
 SITE_ID = 1
+
+CSRF_TRUSTED_ORIGINS = ["http://127.0.0.1:8000", "http://localhost:8000"]
+
+REST_AUTH = {
+    "USE_JWT": True,
+    "JWT_SERIALIZER": "core.serializer.CustomJWTSerializer",
+    "JWT_AUTH_COOKIE": "access",
+    "JWT_AUTH_REFRESH_COOKIE": "refresh",
+    "JWT_AUTH_COOKIE_SECURE": True,
+    "JWT_AUTH_HTTPONLY": True,
+    "JWT_AUTH_SAMESITE": "Lax",
+    "JWT_AUTH_COOKIE_USE_CSRF": False,
+    "JWT_AUTH_RETURN_EXPIRATION": True,
+}
