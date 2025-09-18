@@ -1,10 +1,5 @@
-from rest_framework.authentication import BaseAuthentication
-from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.response import Response
-from rest_framework_simplejwt.authentication import JWTAuthentication
-from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
-
-from .models import User
+from rest_framework_simplejwt.tokens import RefreshToken
 
 
 def get_tokens_for_user(user):
@@ -48,4 +43,17 @@ def create_cookie(serializer):
         max_age=60 * 60,
     )
 
+    return response
+
+
+def remove_cookie():
+    response = Response(
+        {
+            "data": "User Logout Successful",
+            "success": True,
+        }
+    )
+
+    response.delete_cookie(key="access")
+    response.delete_cookie(key="refresh")
     return response

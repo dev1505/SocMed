@@ -3,7 +3,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from .authentication import get_tokens_for_user
 from .hash import check_hashed_password, hash_password
-from .models import Credentials, User
+from .models import Credentials, Followers, User
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -115,3 +115,12 @@ class SocialLoginSerializer(serializers.Serializer):
         }
 
         return data
+
+
+class FollowSerializer(serializers.ModelSerializer):
+    follower = serializers.IntegerField(required=True)
+    following = serializers.IntegerField(required=True)
+
+    class Meta:  # type:ignore
+        model = Followers
+        fields = "__all__"

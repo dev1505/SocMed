@@ -1,12 +1,14 @@
 from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
 
+from .followers import follow_user
 from .google_github_auth import (
     GithubCallback,
     GithubLoginURL,
     GoogleCallback,
     GoogleLogin,
     GoogleLoginURL,
+    logout,
 )
 from .posts import create_post
 from .user_credentials import Login, signup
@@ -21,4 +23,6 @@ urlpatterns = [
     path("auth/github/login/", GithubLoginURL.as_view()),
     path("auth/github/callback/", GithubCallback.as_view()),
     path("user/post/", create_post, name="user_posts"),
+    path("user/logout/", logout, name="user_logout"),
+    path("user/follow/", follow_user, name="user_followers"),
 ]

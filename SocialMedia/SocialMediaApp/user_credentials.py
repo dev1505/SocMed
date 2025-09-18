@@ -7,7 +7,9 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from .serializers import (
     LoginSerializer,
     SignupSerializer,
+    UserSerializer,
 )
+from rest_framework_simplejwt.tokens import AccessToken
 
 
 @api_view(["POST"])
@@ -24,3 +26,7 @@ def signup(request: Request):
 
 class Login(TokenObtainPairView):
     serializer_class = LoginSerializer
+
+
+def get_current_user(user):
+    return UserSerializer(user).data

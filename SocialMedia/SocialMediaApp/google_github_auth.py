@@ -1,16 +1,14 @@
-import re
 from urllib.parse import urlencode
 
 import requests
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from dj_rest_auth.registration.views import SocialLoginView
 from django.conf import settings
-from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+from rest_framework.request import Request
 from rest_framework.views import APIView
-
-from .authentication import create_cookie
-
+from rest_framework.decorators import api_view
+from .authentication import create_cookie, remove_cookie
 from .serializers import SocialLoginSerializer
 
 
@@ -192,3 +190,8 @@ class GithubCallback(APIView):
         response = create_cookie(serializer=serializer)
 
         return response
+
+
+@api_view(["GET"])
+def logout(request: Request):
+    return remove_cookie()
