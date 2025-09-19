@@ -1,3 +1,4 @@
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -22,9 +23,10 @@ def get_tokens_for_user(user):
 def create_cookie(serializer):
     response = Response(
         {
-            "data": serializer.validated_data,
+            "message": serializer.validated_data,
             "success": True,
-        }
+        },
+        status=status.HTTP_200_OK,
     )
 
     response.set_cookie(
@@ -40,7 +42,7 @@ def create_cookie(serializer):
         value=serializer.validated_data["refresh"],
         httponly=True,
         secure=True,
-        max_age=60 * 60,
+        max_age=60 * 60 * 24,
     )
 
     return response
@@ -49,9 +51,10 @@ def create_cookie(serializer):
 def remove_cookie():
     response = Response(
         {
-            "data": "User Logout Successful",
+            "message": "User Logout Successful",
             "success": True,
-        }
+        },
+        status=status.HTTP_200_OK,
     )
 
     response.delete_cookie(key="access")

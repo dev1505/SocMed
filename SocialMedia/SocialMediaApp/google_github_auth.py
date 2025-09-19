@@ -10,6 +10,7 @@ from rest_framework.views import APIView
 from rest_framework.decorators import api_view
 from .authentication import create_cookie, remove_cookie
 from .serializers import SocialLoginSerializer
+from rest_framework import status
 
 
 class GoogleLogin(SocialLoginView):
@@ -35,9 +36,10 @@ class GoogleLoginURL(APIView):
         url = f"{base_url}?{urlencode(params)}"
         return Response(
             {
-                "data": url,
+                "message": url,
                 "success": True,
-            }
+            },
+            status=status.HTTP_200_OK,
         )
 
 
@@ -71,7 +73,8 @@ class GoogleCallback(APIView):
                     "message": "Failed to retrieve access token",
                     "details": tokens,
                     "success": False,
-                }
+                },
+                status=status.HTTP_409_CONFLICT,
             )
 
         userinfo_url = "https://www.googleapis.com/oauth2/v3/userinfo"
@@ -112,9 +115,10 @@ class GithubLoginURL(APIView):
         url = f"{base_url}?{urlencode(params)}"
         return Response(
             {
-                "data": url,
+                "message": url,
                 "success": True,
-            }
+            },
+            status=status.HTTP_200_OK,
         )
 
 
@@ -150,7 +154,8 @@ class GithubCallback(APIView):
                     "message": "Failed to retrieve access token",
                     "details": tokens,
                     "success": False,
-                }
+                },
+                status=status.HTTP_409_CONFLICT,
             )
 
         userinfo_url = "https://api.github.com/user"
@@ -173,7 +178,8 @@ class GithubCallback(APIView):
                 {
                     "message": "Email not available",
                     "success": False,
-                }
+                },
+                status=status.HTTP_409_CONFLICT,
             )
 
         serializer = SocialLoginSerializer(

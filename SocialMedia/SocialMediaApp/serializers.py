@@ -117,10 +117,63 @@ class SocialLoginSerializer(serializers.Serializer):
         return data
 
 
+def get_current_user(user):
+    return UserSerializer(user).data
+
+
 class FollowSerializer(serializers.ModelSerializer):
-    follower = serializers.IntegerField(required=True)
     following = serializers.IntegerField(required=True)
 
     class Meta:  # type:ignore
         model = Followers
-        fields = "__all__"
+        fields = ["follower", "following"]
+        read_only_fields = ["follower"]
+
+    def validate(self, attrs):
+        follower = self.context["request"].user
+        following = attrs.get("following")
+
+        if follower.id == following:
+            raise serializers.ValidationError("Self following is not allowed")
+
+        if not User.objects.filter(pk=following).exists():
+            raise serializers.ValidationError("No such user found")
+
+        if Followers.objects.filter(follower=follower.id, following=following).exists():
+            raise serializers.ValidationError("You are already following this user")
+
+        attrs["follower"] = follower
+        return attrs
+
+
+class UnFollowSerializer(serializers.ModelSerializer):
+    following = serializers.IntegerField(required=True)
+
+    class Meta:  # type:ignore
+        model = Followers
+        fields = ["follower", "following"]
+        read_only_fields = ["follower"]
+
+    def validate(self, attrs):
+        follower = self.context["request"].user
+        following = attrs.get("following")
+
+        if follower.id == following:
+            raise serializers.ValidationError("Self unfollowing is not allowed")
+
+        if not User.objects.filter(pk=following).exists():
+            raise serializers.ValidationError("No such user found")
+
+        if not Followers.objects.filter(
+            follower=follower.id, following=following
+        ).exists():
+            raise serializers.ValidationError("You are not following this user")
+
+        attrs["follower"] = follower
+        return attrs
+
+
+class GetUserFollowers_FollowingSerializer(serializers.ModelSerializer):
+    class Meta:  # type:ignore
+        model = User
+        fields = ["id", "username", "profile_pic"]
