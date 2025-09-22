@@ -8,8 +8,10 @@ from .google_github_auth import (
     GoogleLoginURL,
     logout,
 )
+from .image_upload import ProfileUploadView
 from .posts import create_post
 from .user_credentials import CustomTokenRefreshView, Login, signup
+from .user_post import DeletePostView, LikeUnlikePost, PostUploadAPIView
 
 urlpatterns = [
     path("signup/", signup, name="signup"),
@@ -26,4 +28,8 @@ urlpatterns = [
     path("user/unfollow/", unfollow_user, name="user_unfollow"),
     path("user/getfollowers/", get_followers, name="user_get_followers"),
     path("user/getfollowings/", get_followers, name="user_get_followers"),
+    path("user/profile/upload/", ProfileUploadView.as_view(), name="user_profile_upload"),
+    path("user/post/upload/", PostUploadAPIView.as_view(), name="user_post_upload"),
+    path("user/post/delete/", DeletePostView.as_view(), name="user_post-delete"),
+    path("user/post/like/", LikeUnlikePost.as_view(), name="user_post_like"),
 ]

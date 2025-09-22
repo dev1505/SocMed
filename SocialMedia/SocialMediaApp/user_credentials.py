@@ -42,12 +42,20 @@ class Login(TokenObtainPairView):
 class CustomTokenRefreshView(TokenRefreshView):
     serializer_class = TokenRefreshSerializer
 
-    def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
+    def get(self, request, *args, **kwargs):
+        refresh_token = request.COOKIES.get("refresh")
+
+        if not refresh_token:
+            return Response(
+                {"error": "No refresh token provided"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        serializer = self.get_serializer(data={"refresh": refresh_token})
 
         try:
             serializer.is_valid(raise_exception=True)
-        except Exception as e:
+        except Exception:
             return Response(
                 {"error": "Invalid refresh token"}, status=status.HTTP_401_UNAUTHORIZED
             )

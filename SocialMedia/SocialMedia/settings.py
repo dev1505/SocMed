@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     "dj_rest_auth",
     "dj_rest_auth.registration",
     "rest_framework.authtoken",
+    "storages",
 ]
 
 MIDDLEWARE = [
@@ -180,4 +181,33 @@ REST_AUTH = {
     "JWT_AUTH_SAMESITE": "Lax",
     "JWT_AUTH_COOKIE_USE_CSRF": False,
     "JWT_AUTH_RETURN_EXPIRATION": True,
+}
+
+
+# MinIO credentials
+AWS_ACCESS_KEY_ID = "minioadmin"  # your MINIO_ROOT_USER
+AWS_SECRET_ACCESS_KEY = "minioadmin"  # your MINIO_ROOT_PASSWORD
+AWS_STORAGE_BUCKET_NAME = "user-images"  # must exist in MinIO
+AWS_S3_ENDPOINT_URL = "http://127.0.0.1:9000"  # your MinIO server
+AWS_DEFAULT_ACL = None  # keep it None to avoid ACL errors
+
+
+STORAGES = {
+    "user": {
+        "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+        "OPTIONS": {
+            "access_key": "minioadmin",
+            "secret_key": "minioadmin",
+            "bucket_name": "user-images",
+            "endpoint_url": "http://127.0.0.1:9000/",
+            "region_name": "us-east-1",
+            "addressing_style": "path",
+        },
+    },
+    "default": {
+        "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
 }

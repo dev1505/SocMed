@@ -1,4 +1,8 @@
 from django.db import models
+from storages.backends.s3boto3 import S3Boto3Storage
+from django.conf import settings
+
+user_storage = S3Boto3Storage(**settings.STORAGES["user"]["OPTIONS"])
 
 
 class SoftDeleteModel(models.Model):
@@ -18,7 +22,7 @@ class SoftDeleteModel(models.Model):
 
 class User(SoftDeleteModel):
     username = models.CharField(max_length=150, blank=False, null=False, unique=True)
-    profile_pic = models.ImageField(upload_to="profile_pic/", blank=True, null=True)
+    profile_pic = models.ImageField(storage=user_storage, blank=True, null=True)
     email = models.EmailField(max_length=150, blank=False, null=False, unique=True)
     is_active = models.BooleanField(default=True)
 
@@ -79,3 +83,21 @@ class Followers(models.Model):
 
     def __str__(self):
         return f"{self.follower.username} follows {self.following.username}"
+
+
+class Post(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="posts",
+    )
+
+    content = models.TextField(blank=True, null=True)
+    image = models.ImageField(storage=user_storage, blank=True, null=True)
+
+    liked_by = models.ManyToManyField(User, related_name="liked_posts", blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.user.username} - Post Uploaded"

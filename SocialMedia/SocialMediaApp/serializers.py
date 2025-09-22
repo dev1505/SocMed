@@ -1,9 +1,10 @@
+from django.db import transaction
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from .authentication import get_tokens_for_user
 from .hash import check_hashed_password, hash_password
-from .models import Credentials, Followers, User
+from .models import Credentials, Followers, Post, User
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -88,21 +89,22 @@ class SocialLoginSerializer(serializers.Serializer):
         auth_id = attrs.get("auth_id")
         auth_id_by = attrs.get("auth_id_by")
 
-        user, created = User.objects.get_or_create(
-            email=email,
-            defaults={
-                "username": username,
-                "is_active": True,
-                "is_deleted": False,
-            },
-        )
+        with transaction.atomic():
+            user, created = User.objects.get_or_create(
+                email=email,
+                defaults={
+                    "username": username,
+                    "is_active": True,
+                    "is_deleted": False,
+                },
+            )
 
-        Credentials.objects.get_or_create(
-            user=user,
-            auth_id=auth_id,
-            auth_id_by=auth_id_by,
-            defaults={"password": None},
-        )
+            Credentials.objects.get_or_create(
+                user=user,
+                auth_id=auth_id,
+                auth_id_by=auth_id_by,
+                defaults={"password": None},
+            )
 
         if not user.is_active or user.is_deleted:
             raise serializers.ValidationError("User is inactive or deleted.")
@@ -177,3 +179,57 @@ class GetUserFollowers_FollowingSerializer(serializers.ModelSerializer):
     class Meta:  # type:ignore
         model = User
         fields = ["id", "username", "profile_pic"]
+
+
+class UserAvatarSerializer(serializers.ModelSerializer):
+    class Meta:  # type:ignore
+        model = User
+        fields = ["id", "profile_pic"]
+
+
+class PostSerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField(read_only=True)
+    liked_by = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    likes_count = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:  # type: ignore
+        model = Post
+        fields = [
+            "id",
+            "user",
+            "content",
+            "image",
+            "liked_by",
+            "likes_count",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = [
+            "user",
+            "liked_by",
+            "likes_count",
+            "created_at",
+            "updated_at",
+        ]
+
+    def get_likes_count(self, obj):
+        return obj.liked_by.count()
+
+
+class GetPostSerializer(serializers.ModelSerializer):
+    class Meta:  # type: ignore
+        model = Post
+        fields = "__all__"
+
+
+
+class GetPostByIdSerializer(serializers.Serializer):
+    post_id = serializers.IntegerField(required=True, allow_null=False)
+
+class LikePostSerializer(serializers.Serializer):
+    post_id = serializers.IntegerField(required=True, allow_null=False)
+    liked_by = serializers.IntegerField(required=True, allow_null=False)
+    likes_count = serializers.SerializerMethodField(read_only=True)
+
+    def get_likes_count(self, obj):
+        return obj.liked_by.count()
