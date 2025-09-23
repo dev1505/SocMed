@@ -1,5 +1,6 @@
 from django.urls import path
 
+from .comments import AddCommentView, DeleteCommentView, GetCommentsView
 from .followers import follow_user, get_followers, unfollow_user
 from .google_github_auth import (
     GithubCallback,
@@ -28,8 +29,15 @@ urlpatterns = [
     path("user/unfollow/", unfollow_user, name="user_unfollow"),
     path("user/getfollowers/", get_followers, name="user_get_followers"),
     path("user/getfollowings/", get_followers, name="user_get_followers"),
-    path("user/profile/upload/", ProfileUploadView.as_view(), name="user_profile_upload"),
+    path(
+        "user/profile/upload/", ProfileUploadView.as_view(), name="user_profile_upload"
+    ),
     path("user/post/upload/", PostUploadAPIView.as_view(), name="user_post_upload"),
     path("user/post/delete/", DeletePostView.as_view(), name="user_post-delete"),
     path("user/post/like/", LikeUnlikePost.as_view(), name="user_post_like"),
+    path("user/comment/post/", AddCommentView.as_view(), name="user_post_comment"),
+    path("user/comments/get/", GetCommentsView.as_view(), name="user_comments_get"),
+    path(
+        "user/comment/delete/", DeleteCommentView.as_view(), name="user_delete_comment"
+    ),
 ]

@@ -138,6 +138,14 @@ REST_FRAMEWORK = {
     ),
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.AllowAny",),
     "DATETIME_FORMAT": "%Y-%m-%d %H:%M:%S %Z",
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle",  # for unauthenticated users
+        "rest_framework.throttling.UserRateThrottle",  # for authenticated users
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "10/minute",  # max 10 requests per minute per IP
+        "user": "1000/day",  # max 1000 requests per day per user
+    },
 }
 
 

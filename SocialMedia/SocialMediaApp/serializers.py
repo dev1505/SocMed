@@ -4,7 +4,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from .authentication import get_tokens_for_user
 from .hash import check_hashed_password, hash_password
-from .models import Credentials, Followers, Post, User
+from .models import Comment, Credentials, Followers, Post, User
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -222,9 +222,9 @@ class GetPostSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-
 class GetPostByIdSerializer(serializers.Serializer):
     post_id = serializers.IntegerField(required=True, allow_null=False)
+
 
 class LikePostSerializer(serializers.Serializer):
     post_id = serializers.IntegerField(required=True, allow_null=False)
@@ -233,3 +233,36 @@ class LikePostSerializer(serializers.Serializer):
 
     def get_likes_count(self, obj):
         return obj.liked_by.count()
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    class Meta:  # type: ignore
+        model = Comment
+        fields = [
+            "id",
+            "user",
+            "post",
+            "content",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["user"]
+
+
+class DeleteCommentSerializer(serializers.Serializer):
+    comment_id = serializers.IntegerField(required=True, allow_null=False)
+
+
+class GetCommentsSerializer(serializers.ModelSerializer):
+    class Meta:  # type: ignore
+        model = Comment
+        fields = [
+            "id",
+            "user",
+            "post",
+            "content",
+            "created_at",
+            "updated_at",
+        ]
+
+        read_only_fields = ["user", "content"]

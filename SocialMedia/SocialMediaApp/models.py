@@ -1,6 +1,6 @@
+from django.conf import settings
 from django.db import models
 from storages.backends.s3boto3 import S3Boto3Storage
-from django.conf import settings
 
 user_storage = S3Boto3Storage(**settings.STORAGES["user"]["OPTIONS"])
 
@@ -43,6 +43,9 @@ class User(SoftDeleteModel):
             models.Q(follower=self.pk) | models.Q(following=self.pk)
         ).delete()
         self.save(update_fields=["is_deleted"])
+
+    def __str__(self):
+        return self.username
 
 
 class Credentials(models.Model):
@@ -100,4 +103,16 @@ class Post(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.user.username} - Post Uploaded"
+        return self.content
+
+
+class Comment(models.Model):
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="comments_user"
+    )
+    post = models.ForeignKey(
+        Post, on_delete=models.CASCADE, related_name="comments_post"
+    )
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)

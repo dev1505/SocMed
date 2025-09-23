@@ -24,7 +24,13 @@ class PostUploadAPIView(APIView):
         image = request.FILES.get("image")
 
         if not content and not image:
-            return Response({"error": "No content or image provided"}, status=400)
+            return Response(
+                {
+                    "message": "No content or image provided",
+                    "success": False,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         with transaction.atomic():
             post = Post(user=user, content=content)
@@ -36,7 +42,13 @@ class PostUploadAPIView(APIView):
                 post.image.save(image_path, ContentFile(image.read()), save=True)
 
         serializer = self.serializer_class(post)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(
+            {
+                "data": serializer.data,
+                "success": True,
+            },
+            status=status.HTTP_201_CREATED,
+        )
 
 
 class DeletePostView(APIView):
@@ -51,6 +63,7 @@ class DeletePostView(APIView):
                 {
                     "message": "Post Exits",
                     "data": post.data,
+                    "success": True,
                 },
                 status=status.HTTP_200_OK,
             )
@@ -58,6 +71,7 @@ class DeletePostView(APIView):
             return Response(
                 {
                     "message": "Post does not Exit",
+                    "success": False,
                 },
                 status=status.HTTP_200_OK,
             )
@@ -73,14 +87,22 @@ class LikeUnlikePost(APIView):
 
         if not post_id:
             return Response(
-                {"error": "post_id is required"}, status=status.HTTP_400_BAD_REQUEST
+                {
+                    "message": "post_id is required",
+                    "success": False,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         try:
             post = Post.objects.get(pk=post_id)
         except Post.DoesNotExist:
             return Response(
-                {"error": "Post not found"}, status=status.HTTP_404_NOT_FOUND
+                {
+                    "message": "Post not found",
+                    "success": False,
+                },
+                status=status.HTTP_404_NOT_FOUND,
             )
 
         if post.liked_by.filter(id=user.pk).exists():
@@ -91,6 +113,9 @@ class LikeUnlikePost(APIView):
             action = "liked"
 
         return Response(
-            {"action": action, "post": ""},
+            {
+                "message": action,
+                "success": True,
+            },
             status=status.HTTP_200_OK,
         )
