@@ -1,16 +1,17 @@
-"""
-ASGI config for SocialMedia project.
-
-It exposes the ASGI callable as a module-level variable named ``application``.
-
-For more information on this file, see
-https://docs.djangoproject.com/en/5.2/howto/deployment/asgi/
-"""
-
 import os
 
+import ChatApp.urls  # where websocket_urlpatterns is
+import django
+from channels.auth import AuthMiddlewareStack
+from channels.routing import ProtocolTypeRouter, URLRouter
 from django.core.asgi import get_asgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'SocialMedia.settings')
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "SocialMedia.settings")
+django.setup()
 
-application = get_asgi_application()
+application = ProtocolTypeRouter(
+    {
+        "http": get_asgi_application(),  # DRF/HTTP requests
+        "websocket": AuthMiddlewareStack(URLRouter(ChatApp.urls.websocket_urlpatterns)),
+    }
+)

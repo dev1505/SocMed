@@ -33,6 +33,8 @@ INSTALLED_APPS = [
     "dj_rest_auth.registration",
     "rest_framework.authtoken",
     "storages",
+    "channels",
+    "ChatApp",
 ]
 
 MIDDLEWARE = [
@@ -217,5 +219,14 @@ STORAGES = {
     },
     "staticfiles": {
         "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
+
+
+ASGI_APPLICATION = "SocialMedia.asgi.application"
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
     },
 }
