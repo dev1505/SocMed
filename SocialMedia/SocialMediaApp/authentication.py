@@ -1,6 +1,10 @@
+from asgiref.sync import sync_to_async
 from rest_framework import status
 from rest_framework.response import Response
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import RefreshToken
+
+from .models import User
 
 
 def get_tokens_for_user(user):
@@ -9,6 +13,14 @@ def get_tokens_for_user(user):
         "refresh": str(refresh),
         "access": str(refresh.access_token),
     }
+
+
+@sync_to_async
+def get_user_from_jwt(token_str) -> User:
+    jwt_auth = JWTAuthentication()
+    validated_token = jwt_auth.get_validated_token(token_str)
+    user = jwt_auth.get_user(validated_token)
+    return user
 
 
 # def validate_token(request):

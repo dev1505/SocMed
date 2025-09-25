@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>WebSocket Chat Example</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        #output {
+            border: 1px solid #ccc;
+            height: 300px;
+            overflow-y: auto;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+        #message {
+            width: 80%;
+            padding: 5px;
+        }
+
+        #send {
+            padding: 5px 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2>WebSocket Chat</h2>
+
+    <div>
+        <button id="connect">Connect</button>
+    </div>
+
+    <div id="output"></div>
+
+    <input type="text" id="message" placeholder="Type your message..." />
+    <button id="send">Send</button>
+
+    <script>
+        let socket;
+
+        const connectBtn = document.getElementById("connect");
+        const sendBtn = document.getElementById("send");
+        const messageInput = document.getElementById("message");
+        const output = document.getElementById("output");
+
+        connectBtn.addEventListener("click", () => {
+            // Change this URL to your WebSocket endpoint
+            socket = new WebSocket("ws://127.0.0.1:8000/ws/chat/room1/");
+
+            socket.onopen = () => {
+                appendMessage("Connected to server!");
+            };
+
+            socket.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                appendMessage(`${data.user || data.sender}: ${data.message}`);
+            };
+
+            socket.onclose = () => {
+                appendMessage("Disconnected from server.");
+            };
+
+            socket.onerror = (error) => {
+                appendMessage("WebSocket error: " + error);
+            };
+        });
+
+        sendBtn.addEventListener("click", () => {
+            const message = messageInput.value.trim();
+            if (message && socket && socket.readyState === WebSocket.OPEN) {
+                socket.send(JSON.stringify({ message: message, to_user_id: 2 }));
+                messageInput.value = "";
+            }
+        });
+
+        function appendMessage(msg) {
+            const p = document.createElement("p");
+            p.textContent = msg;
+            output.appendChild(p);
+            output.scrollTop = output.scrollHeight;
+        }
+    </script>
+
+</body>
+
+</html>

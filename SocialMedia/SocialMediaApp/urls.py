@@ -1,3 +1,4 @@
+from ChatApp.ChatViews import Home
 from django.urls import path
 
 from .comments import AddCommentView, DeleteCommentView, GetCommentsView
@@ -15,6 +16,7 @@ from .user_credentials import CustomTokenRefreshView, Login, signup
 from .user_post import DeletePostView, LikeUnlikePost, PostUploadAPIView
 
 urlpatterns = [
+    path("chat/", Home, name="Home"),
     path("signup/", signup, name="signup"),
     path("login/", Login.as_view(), name="login"),
     path("user/logout/", logout, name="user_logout"),
