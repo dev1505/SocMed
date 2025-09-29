@@ -1,9 +1,13 @@
 from asgiref.sync import sync_to_async
+from h11 import Request
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import RefreshToken
 
+# from .serializers import UserSerializer
 from .models import User
 
 
@@ -35,26 +39,32 @@ def get_user_from_jwt(token_str) -> User:
 def create_cookie(serializer):
     response = Response(
         {
-            "message": serializer.validated_data,
+            "message": "Tokens generated",
+            "data": serializer.validated_data["user"],
             "success": True,
         },
         status=status.HTTP_200_OK,
     )
-
     response.set_cookie(
         key="access",
         value=serializer.validated_data["access"],
         httponly=True,
-        secure=True,
+        secure=False,
         max_age=60 * 60,
+        samesite="Lax",
+        # path="/",
+        # domain="localhost",
     )
 
     response.set_cookie(
         key="refresh",
         value=serializer.validated_data["refresh"],
         httponly=True,
-        secure=True,
+        secure=False,
         max_age=60 * 60 * 24,
+        samesite="Lax",
+        # path="/",
+        # domain="localhost",
     )
 
     return response

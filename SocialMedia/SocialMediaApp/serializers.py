@@ -16,7 +16,7 @@ class UserSerializer(serializers.ModelSerializer):
 class SignupSerializer(serializers.Serializer):
     username = serializers.CharField(max_length=150)
     email = serializers.EmailField()
-    password = serializers.CharField(write_only=True)
+    password = serializers.CharField(write_only=True, min_length=8)
     profile_pic = serializers.ImageField(required=False, allow_null=True)
 
     def validate_email(self, value):
@@ -30,14 +30,17 @@ class SignupSerializer(serializers.Serializer):
         return value
 
     def create(self, validated_data):
+        password = validated_data.pop("password")
+        profile_pic = validated_data.pop("profile_pic", None)
+
         user = User.objects.create(
-            username=validated_data["username"],
-            email=validated_data["email"],
-            profile_pic=validated_data.get("profile_pic", None),
+            profile_pic=profile_pic,
             is_active=True,
             is_deleted=False,
+            **validated_data,
         )
-        hashed_password = hash_password(validated_data["password"])
+
+        hashed_password = hash_password(password)
         Credentials.objects.create(
             user=user,
             password=hashed_password,

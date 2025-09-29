@@ -1,0 +1,1 @@
+export const django_app_backend_url: string = "http://localhost:8000"

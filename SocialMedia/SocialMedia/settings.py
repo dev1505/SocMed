@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     "storages",
     "channels",
     "ChatApp",
+    "corsheaders",
 ]
 
 MIDDLEWARE = [
@@ -47,6 +48,8 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "allauth.account.middleware.AccountMiddleware",
     "SocialMediaApp.middleware.CookieToHeaderMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.common.CommonMiddleware",
 ]
 
 ROOT_URLCONF = "SocialMedia.urls"
@@ -179,14 +182,12 @@ SOCIALACCOUNT_PROVIDERS = {
 
 SITE_ID = 1
 
-CSRF_TRUSTED_ORIGINS = ["http://127.0.0.1:8000", "http://localhost:8000"]
-
 REST_AUTH = {
     "USE_JWT": True,
     "JWT_SERIALIZER": "core.serializer.CustomJWTSerializer",
     "JWT_AUTH_COOKIE": "access",
     "JWT_AUTH_REFRESH_COOKIE": "refresh",
-    "JWT_AUTH_COOKIE_SECURE": True,
+    "JWT_AUTH_COOKIE_SECURE": False,
     "JWT_AUTH_HTTPONLY": True,
     "JWT_AUTH_SAMESITE": "Lax",
     "JWT_AUTH_COOKIE_USE_CSRF": False,
@@ -230,3 +231,17 @@ CHANNEL_LAYERS = {
         "BACKEND": "channels.layers.InMemoryChannelLayer",
     },
 }
+
+CORS_ALLOW_ALL_ORIGINS = True
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+
+CORS_ALLOW_CREDENTIALS = True
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]

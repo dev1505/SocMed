@@ -27,16 +27,17 @@ class GoogleLoginURL(APIView):
         base_url = "https://accounts.google.com/o/oauth2/v2/auth"
         params = {
             "client_id": client_id,
-            "redirect_uri": "http://127.0.0.1:8000/auth/google/callback/",
+            "redirect_uri": "http://localhost:5173/login",
             "response_type": "code",
             "scope": "openid email profile",
             "access_type": "offline",
             "prompt": "consent",
+            "state": "google",
         }
         url = f"{base_url}?{urlencode(params)}"
         return Response(
             {
-                "message": url,
+                "data": url,
                 "success": True,
             },
             status=status.HTTP_200_OK,
@@ -61,7 +62,7 @@ class GoogleCallback(APIView):
             "client_secret": settings.SOCIALACCOUNT_PROVIDERS["google"]["APP"][
                 "secret"
             ],
-            "redirect_uri": "http://127.0.0.1:8000/auth/google/callback/",
+            "redirect_uri": "http://localhost:5173/login",
             "grant_type": "authorization_code",
         }
         req = requests.post(token_url, data=data)
@@ -71,7 +72,7 @@ class GoogleCallback(APIView):
             return Response(
                 {
                     "message": "Failed to retrieve access token",
-                    "details": tokens,
+                    "data": tokens,
                     "success": False,
                 },
                 status=status.HTTP_409_CONFLICT,
@@ -108,14 +109,15 @@ class GithubLoginURL(APIView):
         base_url = "https://github.com/login/oauth/authorize"
         params = {
             "client_id": client_id,
-            "redirect_uri": "http://127.0.0.1:8000/auth/github/callback/",
+            "redirect_uri": "http://localhost:5173/login",
             "scope": "read:user user:email",
             "allow_signup": "true",
+            "state": "github",
         }
         url = f"{base_url}?{urlencode(params)}"
         return Response(
             {
-                "message": url,
+                "data": url,
                 "success": True,
             },
             status=status.HTTP_200_OK,
@@ -124,7 +126,7 @@ class GithubLoginURL(APIView):
 
 class GithubCallback(APIView):
     def get(self, request):
-        code = request.query_params.get("code")
+        code = request.GET.get("code")
         if not code:
             return Response(
                 {
@@ -152,7 +154,7 @@ class GithubCallback(APIView):
             return Response(
                 {
                     "message": "Failed to retrieve access token",
-                    "details": tokens,
+                    "data": tokens,
                     "success": False,
                 },
                 status=status.HTTP_409_CONFLICT,
@@ -160,7 +162,10 @@ class GithubCallback(APIView):
 
         userinfo_url = "https://api.github.com/user"
         userinfo_response = requests.get(
-            userinfo_url, headers={"Authorization": f"token {access_token}"}
+            userinfo_url,
+            headers={
+                "Authorization": f"token {access_token}",
+            },
         )
         user_info = userinfo_response.json()
 
@@ -168,7 +173,9 @@ class GithubCallback(APIView):
         if not email:
             emails_res = requests.get(
                 "https://api.github.com/user/emails",
-                headers={"Authorization": f"token {access_token}"},
+                headers={
+                    "Authorization": f"token {access_token}",
+                },
             )
             emails = emails_res.json()
             email = next((e["email"] for e in emails if e.get("primary")), None)
@@ -192,9 +199,7 @@ class GithubCallback(APIView):
         )
 
         serializer.is_valid(raise_exception=True)
-
         response = create_cookie(serializer=serializer)
-
         return response
 
 
