@@ -37,14 +37,16 @@ class AddCommentView(APIView):
             data={"user": request.user.id, "post": post_id, "content": content}
         )
         if serializer.is_valid():
-            Comment.objects.create(
+            commment = Comment.objects.create(
                 user=request.user,
                 post=post,
                 content=content,
             )
+            get_comment = GetCommentsSerializer(commment)
             return Response(
                 {
                     "message": "Comment posted",
+                    "data": get_comment.data,
                     "success": True,
                 },
                 status=status.HTTP_201_CREATED,
@@ -109,6 +111,7 @@ class GetCommentsView(APIView):
             return Response(
                 {
                     "message": "Comments not found",
+                    "data": [],
                     "success": True,
                 },
                 status=status.HTTP_200_OK,

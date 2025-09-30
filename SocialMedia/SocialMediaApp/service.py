@@ -15,3 +15,7 @@ def get_user_followers(following):
 
 def get_user_followings(follower):
     return User.objects.filter(following__follower_id=follower)
+
+
+def check_user_following(user_id):
+    return User.objects.filter(follower__following_id=user_id).exists()

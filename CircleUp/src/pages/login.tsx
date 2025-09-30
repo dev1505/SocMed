@@ -19,7 +19,12 @@ export default function Login() {
 
 
     useEffect(() => {
-        handleCallbackRedirect();
+        (async () => {
+            const response = await handleCallbackRedirect()
+            if (response) {
+                navigate("/");
+            }
+        })()
     }, []);
 
     return (

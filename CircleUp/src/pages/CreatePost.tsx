@@ -16,15 +16,13 @@ export default function CreatePost() {
 
     async function handleCreatePost(e: FormEvent) {
         e.preventDefault();
-        const title = (document.getElementById("title") as HTMLInputElement).value;
-        const desc = (document.getElementById("desc") as HTMLTextAreaElement).value;
+        const content = (document.getElementById("content") as HTMLTextAreaElement).value;
         const formData = new FormData();
-        formData.append("title", title);
-        formData.append("description", desc);
+        formData.append("content", content);
         if (image) {
             formData.append("image", image);
         }
-        await CommonApiCall({ type: "post", url: `${django_app_backend_url}/post/`, payload: formData });
+        await CommonApiCall({ type: "post", url: `${django_app_backend_url}/user/post/upload/`, payload: formData });
     }
 
     return (
@@ -33,20 +31,10 @@ export default function CreatePost() {
                 <h1 className="text-2xl font-bold mb-6 text-center text-gray-800">Create a New Post</h1>
                 <form onSubmit={handleCreatePost} className="space-y-6">
                     <div>
-                        <label htmlFor="title" className="block text-sm font-medium text-gray-700">Title</label>
-                        <input
-                            type="text"
-                            id="title"
-                            name="title"
-                            required
-                            className="mt-1 block w-full p-2 outline-0 border-2 border-orange-200 rounded-md focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                        />
-                    </div>
-                    <div>
-                        <label htmlFor="desc" className="block text-sm font-medium text-gray-700">Description</label>
+                        <label htmlFor="content" className="block text-sm font-medium text-gray-700">Content</label>
                         <textarea
-                            id="desc"
-                            name="desc"
+                            id="content"
+                            name="content"
                             rows={4}
                             className="mt-1 block w-full p-2 border-2 outline-0 border-orange-200 rounded-md focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                         ></textarea>

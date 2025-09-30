@@ -7,7 +7,7 @@ from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from .authentication import create_cookie
-from .models import User
+from .models import Followers, User
 from .serializers import (
     LoginSerializer,
     SignupSerializer,
@@ -65,8 +65,11 @@ class CustomTokenRefreshView(TokenRefreshView):
 
         if not refresh_token:
             return Response(
-                {"error": "No refresh token provided"},
-                status=status.HTTP_400_BAD_REQUEST,
+                {
+                    "message": "No refresh token provided",
+                    "success": False,
+                },
+                status=status.HTTP_401_UNAUTHORIZED,
             )
 
         serializer = self.get_serializer(data={"refresh": refresh_token})
@@ -75,7 +78,11 @@ class CustomTokenRefreshView(TokenRefreshView):
             serializer.is_valid(raise_exception=True)
         except Exception:
             return Response(
-                {"error": "Invalid refresh token"}, status=status.HTTP_401_UNAUTHORIZED
+                {
+                    "message": "Invalid refresh token",
+                    "success": False,
+                },
+                status=status.HTTP_401_UNAUTHORIZED,
             )
 
         response = create_cookie(serializer=serializer)
@@ -91,11 +98,27 @@ class AuthChecking(APIView):
             user = User.objects.get(pk=user_id)
         else:
             user = request.user
+
         user_data = get_current_user(user)
+
+        # Followers = users who follow this user
+        followers = Followers.objects.filter(following=user).values(
+            "follower__id", "follower__username", "follower__profile_pic"
+        )
+
+        # Following = users this user follows
+        following = Followers.objects.filter(follower=user).values(
+            "following__id", "following__username", "following__profile_pic"
+        )
+
         return Response(
             {
                 "message": "User is Logged In",
-                "data": user_data,
+                "data": {
+                    **user_data,
+                    "followers": len(list(followers)),
+                    "following": len(list(following)),
+                },
                 "success": True,
             },
             status=status.HTTP_200_OK,

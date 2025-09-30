@@ -25,7 +25,7 @@ class User(SoftDeleteModel):
     profile_pic = models.ImageField(storage=user_storage, blank=True, null=True)
     email = models.EmailField(max_length=150, blank=False, null=False, unique=True)
     is_active = models.BooleanField(default=True)
-
+    bio = models.CharField(max_length=1000, blank=True, null=True, unique=False)
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["username"]
 

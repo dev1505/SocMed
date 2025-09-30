@@ -9,6 +9,7 @@ from .serializers import (
     UnFollowSerializer,
 )
 from .service import (
+    check_user_following,
     follow_user_creation,
     follow_user_deletion,
     get_user_followers,
@@ -98,3 +99,26 @@ def get_followings(request):
         },
         status=status.HTTP_200_OK,
     )
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def check_followings(request):
+    user_id = request.data.get("user_id")
+    followers = check_user_following(user_id)
+    if followers:
+        return Response(
+            {
+                "message": "User is following",
+                "success": True,
+            },
+            status=status.HTTP_200_OK,
+        )
+    else:
+        return Response(
+            {
+                "message": "User is not following",
+                "success": False,
+            },
+            status=status.HTTP_200_OK,
+        )

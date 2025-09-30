@@ -10,7 +10,15 @@ from .models import Comment, Credentials, Followers, Post, User
 class UserSerializer(serializers.ModelSerializer):
     class Meta:  # type:ignore
         model = User
-        fields = ["id", "username", "email", "profile_pic", "is_deleted", "is_active"]
+        fields = [
+            "id",
+            "username",
+            "email",
+            "bio",
+            "profile_pic",
+            "is_deleted",
+            "is_active",
+        ]
 
 
 class SignupSerializer(serializers.Serializer):
@@ -219,10 +227,32 @@ class PostSerializer(serializers.ModelSerializer):
         return obj.liked_by.count()
 
 
+class GetUserRequiredInfoSerializers(serializers.ModelSerializer):
+    class Meta:  # type: ignore
+        model = User
+        fields = ["id", "username", "profile_pic"]
+
+
 class GetPostSerializer(serializers.ModelSerializer):
+    user = GetUserRequiredInfoSerializers(read_only=True)
+    is_liked = serializers.SerializerMethodField()
+
     class Meta:  # type: ignore
         model = Post
-        fields = "__all__"
+        fields = [
+            "id",
+            "user",
+            "content",
+            "image",
+            "liked_by",
+            "created_at",
+            "updated_at",
+            "is_liked",
+        ]
+
+    def get_is_liked(self, obj):
+        request = self.context.get("request")
+        return obj.liked_by.filter(id=request.user.pk).exists()
 
 
 class GetPostByIdSerializer(serializers.Serializer):
@@ -239,6 +269,8 @@ class LikePostSerializer(serializers.Serializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
+    user = GetUserRequiredInfoSerializers(read_only=True)
+
     class Meta:  # type: ignore
         model = Comment
         fields = [
@@ -249,7 +281,6 @@ class CommentSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
-        read_only_fields = ["user"]
 
 
 class DeleteCommentSerializer(serializers.Serializer):
@@ -257,6 +288,8 @@ class DeleteCommentSerializer(serializers.Serializer):
 
 
 class GetCommentsSerializer(serializers.ModelSerializer):
+    user = GetUserRequiredInfoSerializers(read_only=True)
+
     class Meta:  # type: ignore
         model = Comment
         fields = [
