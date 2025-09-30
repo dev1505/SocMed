@@ -8,6 +8,7 @@ import CreatePost from './pages/CreatePost'
 import EditProfile from './pages/EditProfile'
 import Followers from './pages/Followers'
 import Following from './pages/Following'
+import Chat from './pages/Chat'
 
 function App() {
 
@@ -24,6 +25,7 @@ function App() {
             <Route path="/profile/edit" element={<EditProfile />} />
             <Route path="/profile/followers" element={<Followers />} />
             <Route path="/profile/following" element={<Following />} />
+            <Route path="/chat" element={<Chat />} />
           </Route>
         </Routes>
       </BrowserRouter >
