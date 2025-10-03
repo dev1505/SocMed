@@ -23,16 +23,16 @@ export async function CommonApiCall({ type = "get", payload = {}, url }: ApiResq
         return response_data
     } catch (response_error) {
         if (response_error?.status === 401) {
-            const response = await axios.get(
-                django_app_backend_url + "/api/token/refresh",
-                { withCredentials: true }
-            );
-            if (response.status === 401) {
+            try {
+                const response = await axios.get(django_app_backend_url + "/api/token/refresh/", { withCredentials: true });
+                const response_data = response.data;
+                if (response_data.success) {
+                    window.location.href = "/"
+                }
+            } catch (error) {
                 window.location.href = "/login";
             }
-            const response_data = response.data;
         }
-        alert(JSON.stringify(response_error?.response?.data?.message) ?? "error")
         return false;
     }
 }

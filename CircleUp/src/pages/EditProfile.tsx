@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
 import { CommonApiCall } from "../CommonFunctions";
 import { django_app_backend_url } from "../defaults";
 
@@ -8,6 +9,7 @@ export default function EditProfile() {
     const [image, setImage] = useState<File | null>(null);
     const [userData, setUserData] = useState<any>(null);
     const [preview, setPreview] = useState<string>(defaultProfilePic);
+    const navigate = useNavigate();
 
     useEffect(() => {
         async function fetchUserData() {
@@ -41,12 +43,16 @@ export default function EditProfile() {
             formData.append("profile_picture", image);
         }
 
-        await CommonApiCall({ type: "post", url: `${django_app_backend_url}/user/profile/upload/`, payload: formData });
+        const response = await CommonApiCall({ type: "post", url: `${django_app_backend_url}/user/profile/upload/`, payload: formData });
+        if (await response.success) {
+            alert(await response.message)
+            navigate("/profile");
+        }
     }
 
     return (
-        <div className="mt-4 p-4">
-            <div className="bg-white rounded-lg shadow-lg p-8 max-w-lg mx-auto">
+        <div className="p-4 flex w-full items-center justify-center h-full">
+            <div className="bg-white rounded-lg shadow-lg p-8 mx-auto">
                 <h1 className="text-2xl font-bold mb-6 text-center text-gray-800">Edit Profile</h1>
                 <form onSubmit={handleUpdateProfile} className="space-y-6">
                     <div>
@@ -73,13 +79,13 @@ export default function EditProfile() {
                         />
                     </div>
                     <div>
-                        <label htmlFor="image" className="block text-sm font-medium text-gray-700">Profile Picture</label>
-                        <div className="mt-1 flex items-center space-x-4">
-                            <div className="w-24 h-24 rounded-full overflow-hidden shadow-lg">
+                        <label htmlFor="image" className="text-sm font-medium text-gray-700">Profile Picture</label>
+                        <div className="mt-1 flex items-center">
+                            <div className="w-full h-full rounded-full">
                                 <img
                                     src={preview}
                                     alt="Profile Preview"
-                                    className="w-full h-full object-cover"
+                                    className="w-2/4 h-2/4 rounded-full"
                                 />
                             </div>
                             <label

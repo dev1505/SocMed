@@ -70,6 +70,40 @@ def create_cookie(serializer):
     return response
 
 
+def create_refresh_cookie(serializer):
+    response = Response(
+        {
+            "message": "Tokens generated",
+            "success": True,
+        },
+        status=status.HTTP_200_OK,
+    )
+
+    response.set_cookie(
+        key="access",
+        value=serializer.validated_data["access"],
+        httponly=True,
+        secure=False,
+        max_age=60 * 60,
+        samesite="Lax",
+        # path="/",
+        # domain="localhost",
+    )
+
+    response.set_cookie(
+        key="refresh",
+        value=serializer.validated_data["refresh"],
+        httponly=True,
+        secure=False,
+        max_age=60 * 60 * 24,
+        samesite="Lax",
+        # path="/",
+        # domain="localhost",
+    )
+
+    return response
+
+
 def remove_cookie():
     response = Response(
         {

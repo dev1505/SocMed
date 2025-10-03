@@ -6,7 +6,7 @@ import { django_app_backend_url } from "../defaults";
 import type { Comment } from "../typedef";
 import './postCard.css';
 
-export default function PostCardModal({ postData }) {
+export default function PostCardModal({ postData, followButton }) {
 
     const intitialState: { selectedPost: Comment; openPost: boolean; follow: boolean, is_liked: boolean } = { selectedPost: {}, openPost: false, follow: false, is_liked: false }
     const [postOpen, setPostOpen] = useState(intitialState);
@@ -72,8 +72,15 @@ export default function PostCardModal({ postData }) {
         }
     }
 
+    async function checkPostLike() {
+        const response = await CommonApiCall({ url: `${django_app_backend_url}/user/post/check/like/${postOpen.selectedPost.id}/`, type: "get" })
+        setPostOpen({ ...postOpen, selectedPost: { ...postOpen.selectedPost, is_liked: await response.is_liked ? true : false } })
+        console.log("object", { ...postOpen, selectedPost: { ...postOpen.selectedPost, is_liked: await response.is_liked ? true : false } })
+    }
+
     useEffect(() => {
         if (postOpen.openPost) {
+            checkPostLike()
             getUserComments();
             (async () => {
                 setPostOpen({ ...postOpen, follow: await checkfollowing({ user_id: postOpen.selectedPost.user.id }) });
@@ -82,7 +89,6 @@ export default function PostCardModal({ postData }) {
     }, [postOpen.openPost])
 
     async function handleLikePost() {
-        console.log(postOpen.selectedPost)
         const response = await likePost({ post_id: postOpen.selectedPost.id })
         console.log(await response)
         if (await response.success) {
@@ -101,9 +107,13 @@ export default function PostCardModal({ postData }) {
                             onClick={() => setPostOpen({ ...postOpen, selectedPost: post, openPost: true })}
                         >
                             <img
-                                className="w-full object-cover rounded"
-                                src={post.image}
+                                src={post.image ? post.image : "https://picsum.photos/600/800"} // fallback URL
                                 alt={`Post ${post.id}`}
+                                className="w-full object-cover rounded"
+                                onError={(e) => {
+                                    console.log(post.id, "image failed to load");
+                                    (e.target as HTMLImageElement).src = "https://picsum.photos/600/800"; // fallback
+                                }}
                             />
                         </div>
                     ))
@@ -149,10 +159,10 @@ export default function PostCardModal({ postData }) {
                                         />
                                         <div className="font-bold text-lg bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">{postOpen.selectedPost.user.username}</div>
                                     </div>
-                                    <button
+                                    {followButton && <button
                                         className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-5 py-2 rounded hover:from-purple-600 hover:to-pink-600 transition-all duration-300 transform hover:scale-105"
                                         onClick={handleFollowing}
-                                    >{postOpen.follow === false ? "Follow" : "Unfollow"}</button>
+                                    >{postOpen.follow === false ? "Follow" : "Unfollow"}</button>}
                                 </div>
 
                                 <p className="text-gray-300 mb-1">{postOpen.selectedPost.content}</p>

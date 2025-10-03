@@ -1,4 +1,4 @@
-from ChatApp.ChatViews import Home
+from ChatApp.ChatViews import Get_User_Messages, Home
 from django.urls import path
 
 from SocialMediaApp.user_credentials import AuthChecking
@@ -21,7 +21,13 @@ from .google_github_auth import (
 from .image_upload import ProfileUploadView
 from .posts import Get_Other_Users_Post, Get_Post, Get_User_Post
 from .user_credentials import CustomTokenRefreshView, Login, SignupView
-from .user_post import DeletePostView, LikeUnlikePost, PostUploadAPIView
+from .user_post import (
+    CheckLikePost,
+    DeletePostView,
+    Get_Users,
+    LikeUnlikePost,
+    PostUploadAPIView,
+)
 
 urlpatterns = [
     path("chat/", Home, name="Home"),
@@ -34,6 +40,7 @@ urlpatterns = [
     path("auth/google/callback/", GoogleCallback.as_view(), name="google_callback_url"),
     path("auth/github/login/", GithubLoginURL.as_view()),
     path("auth/github/callback/", GithubCallback.as_view()),
+    path("get/users/", Get_Users.as_view(), name="get_users"),
     path("get/posts/", Get_Post.as_view(), name="get_posts"),
     path("get/user/posts/", Get_User_Post.as_view(), name="get_user_posts"),
     path(
@@ -52,9 +59,19 @@ urlpatterns = [
     path("user/post/upload/", PostUploadAPIView.as_view(), name="user_post_upload"),
     path("user/post/delete/", DeletePostView.as_view(), name="user_post-delete"),
     path("user/post/like/", LikeUnlikePost.as_view(), name="user_post_like"),
+    path(
+        "user/post/check/like/<int:post_id>/",
+        CheckLikePost.as_view(),
+        name="check-like-post",
+    ),
     path("user/comment/post/", AddCommentView.as_view(), name="user_post_comment"),
     path("user/comments/get/", GetCommentsView.as_view(), name="user_comments_get"),
     path(
         "user/comment/delete/", DeleteCommentView.as_view(), name="user_delete_comment"
     ),
+    path(
+        "user/messages/<int:user_id>/",
+        Get_User_Messages.as_view(),
+        name="get_user_messages",
+    ),  # type:ignore
 ]

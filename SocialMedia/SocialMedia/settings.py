@@ -52,6 +52,10 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
 ]
 
+# dbname = SocialMediaLocal
+# username = SocialMediaLocal
+# password = 123
+
 ROOT_URLCONF = "SocialMedia.urls"
 
 TEMPLATES = [
@@ -96,17 +100,29 @@ WSGI_APPLICATION = "SocialMedia.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "neondb",
-        "USER": "neondb_owner",
-        "PASSWORD": "npg_wE05XDyvAnVT",
-        "HOST": "ep-weathered-pond-adplbknv-pooler.c-2.us-east-1.aws.neon.tech",
+        "NAME": "SocialMediaLocal",
+        "USER": "SocialMediaLocal",
+        "PASSWORD": "123",
+        "HOST": "localhost",
         "PORT": "5432",
-        "OPTIONS": {
-            "sslmode": "require",
-            "channel_binding": "require",
-        },
     }
 }
+
+
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.postgresql",
+#         "NAME": "neondb",
+#         "USER": "neondb_owner",
+#         "PASSWORD": "npg_wE05XDyvAnVT",
+#         "HOST": "ep-weathered-pond-adplbknv-pooler.c-2.us-east-1.aws.neon.tech",
+#         "PORT": "5432",
+#         "OPTIONS": {
+#             "sslmode": "require",
+#             "channel_binding": "require",
+#         },
+#     }
+# }
 
 AUTH_USER_MODEL = "SocialMediaApp.User"
 
@@ -148,9 +164,10 @@ REST_FRAMEWORK = {
         "rest_framework.throttling.UserRateThrottle",  # for authenticated users
     ],
     "DEFAULT_THROTTLE_RATES": {
-        "anon": "10/minute",  # max 10 requests per minute per IP
-        "user": "1000/day",  # max 1000 requests per day per user
+        "anon": "10/minute",
+        "user": "1000/day",
     },
+    "PAGE_SIZE": 10,
 }
 
 

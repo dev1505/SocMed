@@ -3,10 +3,16 @@ import json
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 from django.shortcuts import render
+from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.request import Request
+from rest_framework.response import Response
+from rest_framework.views import APIView
 from SocialMediaApp.authentication import get_user_from_jwt
 from SocialMediaApp.models import User
-
+from django.db.models import Q
 from .models import UserMessages
+from .Serializers import UserMessageSerializer
 
 
 def Home(request):
@@ -26,6 +32,15 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def receive(self, text_data):
         data = json.loads(text_data)
+
+        # Save message once
+        await self.save_message(
+            from_user_id=self.user.pk,
+            to_user_id=data["to_user_id"],
+            message=data["message"],
+        )
+
+        # Broadcast to the other user
         await self.channel_layer.group_send(
             self.room_group_name,
             {
@@ -33,23 +48,19 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 "message": data["message"],
                 "to_user_id": data["to_user_id"],
                 "from_user_id": self.user.pk,
-            },  # type: ignore
+            },
         )
 
     async def chat_message(self, event):
-        try:
-            await self.save_message(
-                from_user_id=event["from_user_id"],
-                to_user_id=event["to_user_id"],
-                message=event["message"],
-            )
-        except Exception as e:
-            raise e
+        # Only send to the other users
+        if event["from_user_id"] == self.user.pk:
+            return
+
         await self.send(
             text_data=json.dumps(
                 {
                     "message": event["message"],
-                    "user": self.user.username,
+                    "user": event["from_user_id"],
                 }
             )
         )
@@ -60,4 +71,24 @@ class ChatConsumer(AsyncWebsocketConsumer):
         to_user = User.objects.get(id=to_user_id)
         return UserMessages.objects.create(
             from_user=from_user, to_user=to_user, message=message
+        )
+
+
+class Get_User_Messages(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request: Request, user_id: int, *args, **kwargs):
+        user_messages = UserMessages.objects.filter(
+            Q(from_user=request.user.pk, to_user=user_id)
+            | Q(from_user=user_id, to_user=request.user.pk)
+        ).order_by("message_time")
+
+        serialized_messages = UserMessageSerializer(user_messages, many=True)
+
+        return Response(
+            {
+                "data": serialized_messages.data,
+                "success": True,
+            },
+            status=status.HTTP_200_OK,
         )

@@ -1,7 +1,8 @@
 import { useState, type FormEvent } from "react";
+import { IoIosCreate } from "react-icons/io";
+import { MdCancel } from "react-icons/md";
 import { CommonApiCall } from "../CommonFunctions";
 import { django_app_backend_url } from "../defaults";
-
 export default function CreatePost() {
     const [image, setImage] = useState(null);
     const [preview, setPreview] = useState(null);
@@ -25,9 +26,15 @@ export default function CreatePost() {
         await CommonApiCall({ type: "post", url: `${django_app_backend_url}/user/post/upload/`, payload: formData });
     }
 
+    function handleClearPost() {
+        setImage("");
+        document.getElementById("content").value = '';
+        setPreview(null);
+    }
+
     return (
-        <div className="mt-10">
-            <div className="bg-white rounded-lg flex flex-col shadow-lg p-8 max-w-lg mx-auto">
+        <div className="flex w-full h-full justify-center items-center">
+            <div className="bg-white rounded-lg flex flex-col shadow-lg p-8">
                 <h1 className="text-2xl font-bold mb-6 text-center text-gray-800">Create a New Post</h1>
                 <form onSubmit={handleCreatePost} className="space-y-6">
                     <div>
@@ -36,7 +43,7 @@ export default function CreatePost() {
                             id="content"
                             name="content"
                             rows={4}
-                            className="mt-1 block w-full p-2 border-2 outline-0 border-orange-200 rounded-md focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                            className="mt-1 w-full p-2 border-2 outline-0 border-orange-200 rounded-md focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                         ></textarea>
                     </div>
                     <div>
@@ -68,10 +75,19 @@ export default function CreatePost() {
                     </div>
                     <div>
                         <button
-                            type="submit"
-                            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                            type="button"
+                            className="w-full flex items-center gap-2 justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                            onClick={handleClearPost}
                         >
-                            Create Post
+                            Clear Post <MdCancel className="text-lg" />
+                        </button>
+                    </div>
+                    <div>
+                        <button
+                            type="submit"
+                            className="w-full flex justify-center items-center gap-2 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                        >
+                            Create Post <IoIosCreate className="text-lg" />
                         </button>
                     </div>
                 </form>

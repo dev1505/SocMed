@@ -26,14 +26,6 @@ export default function Sidebar() {
     return (
         <div>
             <div className="bg-orange-100 md:border-r-2 border-t-2 md:border-t-0 border-orange-300 flex flex-row md:flex-col justify-evenly items-center w-screen h-1/12 md:w-1/12 md:h-screen fixed bottom-0">
-                <div title={"User Profile"}>
-                    <img
-                        src="https://picsum.photos/200"
-                        alt="Profile"
-                        className="rounded-full w-12 h-12 cursor-pointer md:w-16 md:h-16 object-cover m-2"
-                        onClick={() => { navigate("/profile") }}
-                    />
-                </div>
                 {
                     sideBarContents?.map((data, index) => {
                         const IconElement = data?.icon;

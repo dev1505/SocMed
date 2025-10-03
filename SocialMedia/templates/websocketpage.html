@@ -51,7 +51,7 @@
         const output = document.getElementById("output");
 
         connectBtn.addEventListener("click", () => {
-            // Change this URL to your WebSocket endpoint
+            // Change this URL to your Web       endpoint
             socket = new WebSocket("ws://127.0.0.1:8000/ws/chat/room1/");
 
             socket.onopen = () => {

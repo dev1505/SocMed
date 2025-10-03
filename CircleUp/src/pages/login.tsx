@@ -22,6 +22,7 @@ export default function Login() {
         (async () => {
             const response = await handleCallbackRedirect()
             if (response) {
+                alert("Login Successfull")
                 navigate("/");
             }
         })()

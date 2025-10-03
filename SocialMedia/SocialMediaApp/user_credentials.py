@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from .authentication import create_cookie
+from .authentication import create_cookie, create_refresh_cookie
 from .models import Followers, User
 from .serializers import (
     LoginSerializer,
@@ -85,7 +85,7 @@ class CustomTokenRefreshView(TokenRefreshView):
                 status=status.HTTP_401_UNAUTHORIZED,
             )
 
-        response = create_cookie(serializer=serializer)
+        response = create_refresh_cookie(serializer=serializer)
         return response
 
 
@@ -101,12 +101,10 @@ class AuthChecking(APIView):
 
         user_data = get_current_user(user)
 
-        # Followers = users who follow this user
         followers = Followers.objects.filter(following=user).values(
             "follower__id", "follower__username", "follower__profile_pic"
         )
 
-        # Following = users this user follows
         following = Followers.objects.filter(follower=user).values(
             "following__id", "following__username", "following__profile_pic"
         )
@@ -116,8 +114,8 @@ class AuthChecking(APIView):
                 "message": "User is Logged In",
                 "data": {
                     **user_data,
-                    "followers": len(list(followers)),
-                    "following": len(list(following)),
+                    "followers": list(followers),
+                    "following": list(following),
                 },
                 "success": True,
             },

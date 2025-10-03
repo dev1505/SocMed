@@ -1,5 +1,7 @@
+from email import message
 from django.core.files.base import ContentFile
 from django.db import transaction
+from h11 import Request
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -11,6 +13,7 @@ from .serializers import (
     GetPostSerializer,
     LikePostSerializer,
     PostSerializer,
+    UserSerializer,
 )
 
 
@@ -48,6 +51,20 @@ class PostUploadAPIView(APIView):
                 "success": True,
             },
             status=status.HTTP_201_CREATED,
+        )
+
+
+class Get_Users(APIView):
+    def get(self, request: Request):
+        users = User.objects.all().exclude(id=request.user.pk)
+        serialized_user = UserSerializer(users, many=True)
+        return Response(
+            {
+                "message": "User list",
+                "data": serialized_user.data,
+                "success": True,
+            },
+            status=status.HTTP_200_OK,
         )
 
 
@@ -115,6 +132,32 @@ class LikeUnlikePost(APIView):
         return Response(
             {
                 "message": action,
+                "success": True,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+class CheckLikePost(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, post_id, *args, **kwargs):
+        user = request.user
+        print(post_id)
+        try:
+            post = Post.objects.get(pk=post_id)
+        except Post.DoesNotExist:
+            return Response(
+                {"message": "Post not found", "success": False},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        is_liked = post.liked_by.filter(id=user.pk).exists()
+
+        return Response(
+            {
+                "post_id": post.pk,
+                "is_liked": is_liked,
                 "success": True,
             },
             status=status.HTTP_200_OK,

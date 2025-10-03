@@ -64,11 +64,11 @@ export default function UserProfile() {
                                     <p>Posts</p>
                                 </div>
                                 <div onClick={() => navigate("/profile/followers")} className="cursor-pointer text-center">
-                                    <span className="font-bold text-lg text-gray-800">{userData?.followers || 0}</span>
+                                    <span className="font-bold text-lg text-gray-800">{userData?.followers?.length || 0}</span>
                                     <p>Followers</p>
                                 </div>
                                 <div onClick={() => navigate("/profile/following")} className="cursor-pointer text-center">
-                                    <span className="font-bold text-lg text-gray-800">{userData?.following || 0}</span>
+                                    <span className="font-bold text-lg text-gray-800">{userData?.following?.length || 0}</span>
                                     <p>Following</p>
                                 </div>
                             </div>
@@ -89,7 +89,7 @@ export default function UserProfile() {
                 <div className="mt-8">
                     <div className="bg-white rounded-2xl shadow-xl p-4">
                         <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center md:text-left">Posts</h2>
-                        <PostCard postData={postData} />
+                        <PostCard postData={postData} followButton={false} />
                     </div>
                 </div>
             </div>
